@@ -7,8 +7,6 @@ import { DayPicker, DropdownProps } from "react-day-picker"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select"
-import { ScrollArea } from "./scroll-area"
-
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
@@ -58,7 +56,7 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Dropdown: ({ value, onChange, children, ...props }: DropdownProps) => {
+        Dropdown: ({ value, onChange, children }: DropdownProps) => {
           const options = React.Children.toArray(
             children
           ) as React.ReactElement<React.HTMLProps<HTMLOptionElement>>[]
@@ -80,7 +78,6 @@ function Calendar({
                 <SelectValue>{selected?.props?.children}</SelectValue>
               </SelectTrigger>
               <SelectContent position="popper">
-                <ScrollArea className="h-80">
                   {options.map((option, id: number) => (
                     <SelectItem
                       key={`${option.props.value}-${id}`}
@@ -89,7 +86,6 @@ function Calendar({
                       {option.props.children}
                     </SelectItem>
                   ))}
-                </ScrollArea>
               </SelectContent>
             </Select>
           )
