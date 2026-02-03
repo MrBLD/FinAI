@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import * as React from 'react';
 import { format } from 'date-fns';
@@ -30,19 +30,22 @@ export function GlobalFilters() {
   );
 
   const accounts = React.useMemo(() => {
-    const accountSet = new Set(transactions.map(t => t.account));
+    const accountSet = new Set(transactions.map((t) => t.account));
     return Array.from(accountSet).sort();
   }, [transactions]);
-  
+
   const categories = React.useMemo(() => {
-    const categorySet = new Set(transactions.map(t => t.category));
+    const categorySet = new Set(transactions.map((t) => t.category));
     return Array.from(categorySet).sort();
   }, [transactions]);
-  
+
   React.useEffect(() => {
     if (transactions.length > 0) {
-      const dates = transactions.map(t => new Date(t.date));
-      setDate({ from: new Date(Math.min(...dates.map(d=>d.getTime()))), to: new Date(Math.max(...dates.map(d=>d.getTime()))) });
+      const dates = transactions.map((t) => new Date(t.date));
+      setDate({
+        from: new Date(Math.min(...dates.map((d) => d.getTime()))),
+        to: new Date(Math.max(...dates.map((d) => d.getTime()))),
+      });
     }
   }, [transactions]);
 
@@ -53,14 +56,14 @@ export function GlobalFilters() {
   };
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex flex-col sm:flex-row items-center gap-2">
       <Popover onOpenChange={handleCalendarOpen}>
         <PopoverTrigger asChild>
           <Button
             id="date"
             variant={'outline'}
             className={cn(
-              'w-[260px] justify-start text-left font-normal',
+              'w-full sm:w-[260px] justify-start text-left font-normal',
               !date && 'text-muted-foreground'
             )}
             disabled={transactions.length === 0}
@@ -97,25 +100,29 @@ export function GlobalFilters() {
       </Popover>
 
       <Select disabled={accounts.length === 0}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-full sm:w-[180px]">
           <SelectValue placeholder="All Accounts" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Accounts</SelectItem>
-          {accounts.map(account => (
-            <SelectItem key={account} value={account}>{account}</SelectItem>
+          {accounts.map((account) => (
+            <SelectItem key={account} value={account}>
+              {account}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>
 
       <Select disabled={categories.length === 0}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-full sm:w-[180px]">
           <SelectValue placeholder="All Categories" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Categories</SelectItem>
-          {categories.map(category => (
-            <SelectItem key={category} value={category}>{category}</SelectItem>
+          {categories.map((category) => (
+            <SelectItem key={category} value={category}>
+              {category}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>
