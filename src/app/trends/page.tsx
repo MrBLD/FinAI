@@ -1,28 +1,29 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { getTransactions } from '@/lib/data';
-import type { Transaction } from '@/lib/types';
 import { TrendsCharts } from '@/components/trends/charts';
+import { useTransactions } from '@/context/transactions-context';
 
 export default function TrendsPage() {
-  const [data, setData] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { transactions, loading } = useTransactions();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const transactions = await getTransactions();
-      setData(transactions);
-      // Simulate network delay
-      setTimeout(() => setLoading(false), 500);
-    };
-    fetchData();
-  }, []);
+  if (loading && transactions.length === 0) {
+      return (
+          <div className="flex-1 space-y-4">
+              <TrendsCharts transactions={[]} loading={true} />
+          </div>
+      );
+  }
 
   return (
     <div className="flex-1 space-y-4">
-      <TrendsCharts transactions={data} loading={loading} />
+        {transactions.length > 0 ? (
+            <TrendsCharts transactions={transactions} loading={loading} />
+        ) : (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+                <h2 className="text-2xl font-semibold mb-2">No Data Available</h2>
+                <p className="text-muted-foreground">Please upload a CSV file on the Transactions page to get started.</p>
+            </div>
+        )}
     </div>
   );
 }

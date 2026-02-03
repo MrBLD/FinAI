@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
+import { useTransactions } from '@/context/transactions-context';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -22,10 +23,25 @@ import {
 import type { DateRange } from 'react-day-picker';
 
 export function GlobalFilters() {
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: new Date(2023, 0, 20),
-    to: new Date(),
-  });
+  const { transactions } = useTransactions();
+  const [date, setDate] = React.useState<DateRange | undefined>();
+
+  const accounts = React.useMemo(() => {
+    const accountSet = new Set(transactions.map(t => t.account));
+    return Array.from(accountSet).sort();
+  }, [transactions]);
+  
+  const categories = React.useMemo(() => {
+    const categorySet = new Set(transactions.map(t => t.category));
+    return Array.from(categorySet).sort();
+  }, [transactions]);
+  
+  React.useEffect(() => {
+    if (transactions.length > 0) {
+      const dates = transactions.map(t => new Date(t.date));
+      setDate({ from: new Date(Math.min(...dates.map(d=>d.getTime()))), to: new Date(Math.max(...dates.map(d=>d.getTime()))) });
+    }
+  }, [transactions]);
 
   return (
     <div className="flex items-center space-x-2">
@@ -38,6 +54,7 @@ export function GlobalFilters() {
               'w-[260px] justify-start text-left font-normal',
               !date && 'text-muted-foreground'
             )}
+            disabled={transactions.length === 0}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {date?.from ? (
@@ -66,27 +83,27 @@ export function GlobalFilters() {
         </PopoverContent>
       </Popover>
 
-      <Select>
+      <Select disabled={accounts.length === 0}>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="All Accounts" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Accounts</SelectItem>
-          <SelectItem value="main-bank">Main Bank</SelectItem>
-          <SelectItem value="credit-card">Credit Card</SelectItem>
-          <SelectItem value="savings">Savings</SelectItem>
+          {accounts.map(account => (
+            <SelectItem key={account} value={account}>{account}</SelectItem>
+          ))}
         </SelectContent>
       </Select>
 
-      <Select>
+      <Select disabled={categories.length === 0}>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="All Categories" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Categories</SelectItem>
-          <SelectItem value="housing">Housing</SelectItem>
-          <SelectItem value="transportation">Transportation</SelectItem>
-          <SelectItem value="food">Food</SelectItem>
+          {categories.map(category => (
+            <SelectItem key={category} value={category}>{category}</SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

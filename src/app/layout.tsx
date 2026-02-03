@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AppShell } from '@/components/app-shell';
 import { Toaster } from '@/components/ui/toaster';
+import { TransactionsProvider } from '@/context/transactions-context';
 
 export const metadata: Metadata = {
   title: 'FinanceFlow Dashboard',
@@ -24,7 +25,9 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <AppShell>{children}</AppShell>
+        <TransactionsProvider>
+          <AppShell>{children}</AppShell>
+        </TransactionsProvider>
         <Toaster />
       </body>
     </html>

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import type { Transaction } from '@/lib/types';
-import { getTransactions } from '@/lib/data';
+import { useTransactions } from '@/context/transactions-context';
 import { DataTable } from '@/components/transactions/data-table';
 import { columns } from '@/components/transactions/columns';
 import { Button } from '@/components/ui/button';
@@ -12,21 +12,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 
 export default function TransactionsPage() {
-  const [data, setData] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { transactions, addTransactions, deleteTransactions, loading, setLoading } = useTransactions();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const transactions = await getTransactions();
-      setData(transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-      // Simulate network delay
-      setTimeout(() => setLoading(false), 500);
-    };
-    fetchData();
-  }, []);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -38,14 +26,13 @@ export default function TransactionsPage() {
       try {
         const text = e.target?.result as string;
         const lines = text.trim().split('\n');
-        lines.shift(); // Remove header row
+        const header = lines.shift();
 
         const newTransactions: Transaction[] = lines
           .map((line, index) => {
             if (!line.trim()) return null;
 
             const values = line.split(',');
-            // Date,Type,Account,Category,Subcategory,Amount,Comment
             if (values.length < 6) {
               console.warn(`Skipping invalid line (not enough columns) ${index + 2}: ${line}`);
               return null;
@@ -57,34 +44,23 @@ export default function TransactionsPage() {
             const dateValue = (() => {
                 const trimmedDateStr = dateStr.trim();
                 if (!trimmedDateStr) return null;
-
                 const parts = trimmedDateStr.split(' ');
-                // The format is DD-MM-YYYY HH:mm
                 if (parts.length !== 2) return null;
-
                 const dateParts = parts[0].split('-');
                 const timeParts = parts[1].split(':');
-
                 if (dateParts.length !== 3 || timeParts.length !== 2) return null;
-
                 const day = parseInt(dateParts[0], 10);
-                const month = parseInt(dateParts[1], 10) - 1; // Month is 0-based in JS Date
+                const month = parseInt(dateParts[1], 10) - 1;
                 const year = parseInt(dateParts[2], 10);
-
                 const hours = parseInt(timeParts[0], 10);
                 const minutes = parseInt(timeParts[1], 10);
-
                 if ([day, month, year, hours, minutes].some(isNaN)) return null;
-                
                 const date = new Date(year, month, day, hours, minutes);
-                // Check if date is valid
                 if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
                     return null;
                 }
-
                 return date;
             })();
-
 
             if (!dateValue || isNaN(dateValue.getTime())) {
                 console.warn(`Skipping invalid date on line ${index + 2}: ${line}`);
@@ -112,7 +88,7 @@ export default function TransactionsPage() {
           })
           .filter((t): t is Transaction => t !== null);
 
-        setData(prevData => [...prevData, ...newTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+        addTransactions(newTransactions);
         toast({
           title: "Upload Successful",
           description: `${newTransactions.length} transactions have been added.`,
@@ -143,11 +119,11 @@ export default function TransactionsPage() {
   };
 
   const handleDeleteTransactions = (rowsToDelete: Transaction[]) => {
-    const idsToDelete = new Set(rowsToDelete.map((row) => row.id));
-    setData((prevData) => prevData.filter((t) => !idsToDelete.has(t.id)));
+    const idsToDelete = rowsToDelete.map((row) => row.id);
+    deleteTransactions(idsToDelete);
     toast({
       title: 'Transactions Deleted',
-      description: `${idsToDelete.size} transaction(s) have been deleted.`,
+      description: `${idsToDelete.length} transaction(s) have been deleted.`,
     });
   };
 
@@ -166,7 +142,7 @@ export default function TransactionsPage() {
           onChange={handleFileUpload}
         />
       </div>
-      {loading && data.length === 0 ? (
+      {loading && transactions.length === 0 ? (
         <div className="space-y-4">
           <div className="flex justify-between">
             <Skeleton className="h-10 w-1/4" />
@@ -175,7 +151,7 @@ export default function TransactionsPage() {
           <Skeleton className="h-96 w-full rounded-md border" />
         </div>
       ) : (
-        <DataTable columns={columns} data={data} onDelete={handleDeleteTransactions} />
+        <DataTable columns={columns} data={transactions} onDelete={handleDeleteTransactions} />
       )}
     </div>
   );
