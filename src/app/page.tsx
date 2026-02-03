@@ -227,7 +227,7 @@ export default function OverviewPage() {
         <div className="flex flex-col items-center justify-center h-full text-center">
           <h2 className="text-2xl font-semibold mb-2">No Data Available</h2>
           <p className="text-muted-foreground">
-            Please upload a CSV file on the Transactions page to get started.
+            Please upload CSV file on the Transactions page to get started.
           </p>
         </div>
       )}
