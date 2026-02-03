@@ -7,6 +7,7 @@ interface TransactionsContextType {
   transactions: Transaction[];
   setTransactions: (transactions: Transaction[]) => void;
   addTransactions: (newTransactions: Transaction[]) => void;
+  updateTransaction: (updatedTransaction: Transaction) => void;
   deleteTransactions: (transactionIds: string[]) => void;
   loading: boolean;
   setLoading: (loading: boolean) => void;
@@ -22,13 +23,17 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
     setTransactions(prev => [...newTransactions, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
   };
 
+  const updateTransaction = (updatedTransaction: Transaction) => {
+    setTransactions(prev => prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+  }
+
   const deleteTransactions = (transactionIds: string[]) => {
     const idsToDelete = new Set(transactionIds);
     setTransactions(prev => prev.filter(t => !idsToDelete.has(t.id)));
   }
 
   return (
-    <TransactionsContext.Provider value={{ transactions, setTransactions, addTransactions, deleteTransactions, loading, setLoading }}>
+    <TransactionsContext.Provider value={{ transactions, setTransactions, addTransactions, updateTransaction, deleteTransactions, loading, setLoading }}>
       {children}
     </TransactionsContext.Provider>
   );

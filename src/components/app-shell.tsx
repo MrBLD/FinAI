@@ -24,6 +24,7 @@ import {
   TrendingUp,
   ArrowLeftRight,
   Settings,
+  BookText,
 } from 'lucide-react';
 import { Logo } from '@/components/icons';
 import { GlobalFilters } from './global-filters';
@@ -32,6 +33,7 @@ const navItems = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
   { href: '/trends', label: 'Long Term', icon: TrendingUp },
   { href: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
+  { href: '/journal', label: 'Journal', icon: BookText },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {

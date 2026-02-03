@@ -1,20 +1,29 @@
 "use client";
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import type { Transaction } from '@/lib/types';
 import { useTransactions } from '@/context/transactions-context';
 import { DataTable } from '@/components/transactions/data-table';
 import { columns } from '@/components/transactions/columns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload } from 'lucide-react';
+import { Upload, PlusCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { TransactionForm } from '@/components/transactions/transaction-form';
 
 export default function TransactionsPage() {
   const { transactions, addTransactions, deleteTransactions, loading, setLoading } = useTransactions();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const [isAddDialogOpen, setAddDialogOpen] = useState(false);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -129,18 +138,34 @@ export default function TransactionsPage() {
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
-        <Button onClick={() => fileInputRef.current?.click()} disabled={loading}>
-          <Upload className="mr-2 h-4 w-4" />
-          {loading ? 'Processing...' : 'Upload CSV'}
-        </Button>
-        <Input
-          type="file"
-          ref={fileInputRef}
-          className="hidden"
-          accept=".csv"
-          onChange={handleFileUpload}
-        />
+      <div className="flex items-center justify-between py-4">
+        <div className="flex items-center gap-2">
+          <Button onClick={() => fileInputRef.current?.click()} disabled={loading}>
+            <Upload className="mr-2 h-4 w-4" />
+            {loading ? 'Processing...' : 'Upload CSV'}
+          </Button>
+          <Input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept=".csv"
+            onChange={handleFileUpload}
+          />
+           <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="outline">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Manual
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Add Transaction</DialogTitle>
+                    </DialogHeader>
+                    <TransactionForm onFinished={() => setAddDialogOpen(false)} />
+                </DialogContent>
+            </Dialog>
+        </div>
       </div>
       {loading && transactions.length === 0 ? (
         <div className="space-y-4">
