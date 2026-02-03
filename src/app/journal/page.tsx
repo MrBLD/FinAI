@@ -5,15 +5,16 @@ import { useTransactions } from '@/context/transactions-context';
 import type { Transaction } from '@/lib/types';
 import { JournalCard } from '@/components/journal/journal-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { TransactionForm } from '@/components/transactions/transaction-form';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function JournalPage() {
   const { transactions, loading, deleteTransactions } = useTransactions();
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
+  const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const groupedTransactions = transactions.reduce((acc, tx) => {
@@ -38,6 +39,23 @@ export default function JournalPage() {
 
   return (
     <div className="space-y-6">
+       <div className="flex justify-end">
+        <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Manual
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add Transaction</DialogTitle>
+            </DialogHeader>
+            <TransactionForm onFinished={() => setAddDialogOpen(false)} />
+          </DialogContent>
+        </Dialog>
+      </div>
+
       {loading && transactions.length === 0 ? (
         <div className="space-y-4">
           <Skeleton className="h-24 w-full" />
