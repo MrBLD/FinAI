@@ -21,7 +21,7 @@ export default function TransactionsPage() {
     const fetchData = async () => {
       setLoading(true);
       const transactions = await getTransactions();
-      setData(transactions);
+      setData(transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
       // Simulate network delay
       setTimeout(() => setLoading(false), 500);
     };
@@ -45,8 +45,8 @@ export default function TransactionsPage() {
             if (!line.trim()) return null;
 
             const values = line.split(',');
-            // Assuming CSV format: date,type,account,category,subcategory,amount,comment
-            if (values.length < 7) {
+            // Date,Type,Account,Category,Subcategory,Amount,Comment
+            if (values.length < 6) {
               console.warn(`Skipping invalid line (not enough columns) ${index + 2}: ${line}`);
               return null;
             }
@@ -54,18 +54,54 @@ export default function TransactionsPage() {
             const [dateStr, type, account, category, subcategory, amountStr, ...commentParts] = values;
             const comment = commentParts.join(',').trim().replace(/"/g, '');
 
+            const dateValue = (() => {
+                const trimmedDateStr = dateStr.trim();
+                if (!trimmedDateStr) return null;
 
+                const parts = trimmedDateStr.split(' ');
+                // The format is DD-MM-YYYY HH:mm
+                if (parts.length !== 2) return null;
+
+                const dateParts = parts[0].split('-');
+                const timeParts = parts[1].split(':');
+
+                if (dateParts.length !== 3 || timeParts.length !== 2) return null;
+
+                const day = parseInt(dateParts[0], 10);
+                const month = parseInt(dateParts[1], 10) - 1; // Month is 0-based in JS Date
+                const year = parseInt(dateParts[2], 10);
+
+                const hours = parseInt(timeParts[0], 10);
+                const minutes = parseInt(timeParts[1], 10);
+
+                if ([day, month, year, hours, minutes].some(isNaN)) return null;
+                
+                const date = new Date(year, month, day, hours, minutes);
+                // Check if date is valid
+                if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
+                    return null;
+                }
+
+                return date;
+            })();
+
+
+            if (!dateValue || isNaN(dateValue.getTime())) {
+                console.warn(`Skipping invalid date on line ${index + 2}: ${line}`);
+                return null;
+            }
+            
             const amount = parseFloat(amountStr);
             const transactionType = type.trim().toLowerCase();
 
-            if (isNaN(amount) || (transactionType !== 'income' && transactionType !== 'expense') || !dateStr) {
+            if (isNaN(amount) || (transactionType !== 'income' && transactionType !== 'expense')) {
               console.warn(`Skipping invalid data on line ${index + 2}: ${line}`);
               return null;
             }
 
             return {
               id: `csv_${new Date().getTime()}_${index}`,
-              date: new Date(dateStr.trim()).toISOString(),
+              date: dateValue.toISOString(),
               type: transactionType as 'income' | 'expense',
               account: account.trim(),
               category: category.trim(),
@@ -76,7 +112,7 @@ export default function TransactionsPage() {
           })
           .filter((t): t is Transaction => t !== null);
 
-        setData(prevData => [...newTransactions, ...prevData]);
+        setData(prevData => [...prevData, ...newTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
         toast({
           title: "Upload Successful",
           description: `${newTransactions.length} transactions have been added.`,
