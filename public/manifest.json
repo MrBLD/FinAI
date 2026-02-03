@@ -1,0 +1,48 @@
+{
+  "name": "FinanceFlow Dashboard",
+  "short_name": "FinAI",
+  "description": "Your personal finance overview and management app",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#f97316",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity", "business"],
+  "shortcuts": [
+    {
+      "name": "Transactions",
+      "short_name": "Transactions",
+      "description": "View your transactions",
+      "url": "/transactions",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Trends",
+      "short_name": "Trends",
+      "description": "View your financial trends",
+      "url": "/trends",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Journal",
+      "short_name": "Journal",
+      "description": "Access your financial journal",
+      "url": "/journal",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}
