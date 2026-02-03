@@ -1,14 +1,22 @@
 import type { Transaction } from './types';
-import { subMonths, formatISO, subDays } from 'date-fns';
+import { formatISO, subDays } from 'date-fns';
 
 const categories = {
-  income: ['Salary', 'Freelance', 'Investment'],
+  income: {
+    'Invest-Income': ['Dividend', 'Interest'],
+    'Work-Income': ['Freelance'],
+    'Stipend': ['Unknown'],
+    'Pocket Money': ['Unknown'],
+    'Refund': ['Unknown']
+  },
   expense: {
-    'Housing': ['Rent', 'Mortgage', 'Utilities'],
-    'Transportation': ['Gas', 'Public Transit', 'Car Maintenance'],
-    'Food': ['Groceries', 'Restaurants', 'Coffee Shops'],
-    'Personal': ['Shopping', 'Health', 'Entertainment'],
-    'Bills': ['Phone', 'Internet', 'Insurance'],
+    'Food': ['Groceries', 'Snacks', 'Restraunt', 'Water', 'Mess-ext', 'Sweets', 'Dairy'],
+    'Health': ['Medical', 'Fitness'],
+    'Invest': ['Stocks', 'Tax'],
+    'Misc': ['Recharge', 'Home', 'Hotel'],
+    'Miscellaneous': ['Unknown'],
+    'Shopping': ['Other', 'Clothes', 'Electronics', 'Home', 'Services', 'Cloth'],
+    'Travel': ['Auto', 'Fuel', 'Train', 'Bus', 'Rental', 'Flight', 'Metro', 'Parking'],
   },
 };
 
@@ -23,8 +31,10 @@ const generateRandomTransaction = (id: number): Transaction => {
   let amount: number;
 
   if (type === 'income') {
-    category = categories.income[Math.floor(Math.random() * categories.income.length)];
-    subcategory = 'N/A';
+    const incomeCategories = Object.keys(categories.income);
+    category = incomeCategories[Math.floor(Math.random() * incomeCategories.length)];
+    const subcategories = categories.income[category as keyof typeof categories.income];
+    subcategory = subcategories[Math.floor(Math.random() * subcategories.length)];
     amount = Math.floor(Math.random() * 4000) + 1000;
   } else {
     const expenseCategories = Object.keys(categories.expense);
