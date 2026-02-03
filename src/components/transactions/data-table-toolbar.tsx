@@ -160,13 +160,16 @@ export function DataTableToolbar<TData>({
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
-                  initialFocus
-                  mode="range"
-                  month={calendarMonth}
-                  onMonthChange={setCalendarMonth}
-                  selected={date}
-                  onSelect={(range) => table.getColumn('date')?.setFilterValue(range)}
-                  numberOfMonths={1}
+                    initialFocus
+                    mode="range"
+                    month={calendarMonth}
+                    onMonthChange={setCalendarMonth}
+                    selected={date}
+                    onSelect={(range) => table.getColumn('date')?.setFilterValue(range)}
+                    numberOfMonths={1}
+                    captionLayout="dropdown-buttons"
+                    fromYear={2000}
+                    toYear={new Date().getFullYear() + 5}
                   />
               </PopoverContent>
           </Popover>

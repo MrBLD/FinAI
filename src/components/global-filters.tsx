@@ -89,6 +89,9 @@ export function GlobalFilters() {
             month={calendarMonth}
             onMonthChange={setCalendarMonth}
             numberOfMonths={1}
+            captionLayout="dropdown-buttons"
+            fromYear={2000}
+            toYear={new Date().getFullYear() + 5}
           />
         </PopoverContent>
       </Popover>
