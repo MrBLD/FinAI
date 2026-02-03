@@ -1,11 +1,57 @@
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import { ColumnDef, FilterFn, Row } from "@tanstack/react-table"
 import type { Transaction } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { ArrowUpDown } from "lucide-react"
+import { DateRange } from "react-day-picker"
+
+const dateFilterFn: FilterFn<any> = (
+  row: Row<any>,
+  columnId: string,
+  filterValue: DateRange
+) => {
+  const date = new Date(row.getValue(columnId));
+  if (!filterValue) return true;
+  const { from, to } = filterValue;
+
+  if (from && !to) {
+    return date >= from;
+  } else if (!from && to) {
+    const toDate = new Date(to);
+    toDate.setHours(23, 59, 59, 999);
+    return date <= toDate;
+  } else if (from && to) {
+    const toDate = new Date(to);
+    toDate.setHours(23, 59, 59, 999);
+    return date >= from && date <= toDate;
+  }
+  return true;
+};
+
+const amountFilterFn: FilterFn<any> = (
+  row: Row<any>,
+  columnId: string,
+  filterValue: [number | undefined, number | undefined]
+) => {
+  if (!filterValue || (filterValue[0] === undefined && filterValue[1] === undefined)) return true;
+
+  const amount = row.getValue(columnId) as number;
+  const [min, max] = filterValue;
+
+  if (min !== undefined && max !== undefined) {
+    return amount >= min && amount <= max;
+  }
+  if (min !== undefined) {
+    return amount >= min;
+  }
+  if (max !== undefined) {
+    return amount <= max;
+  }
+  return true;
+};
 
 export const columns: ColumnDef<Transaction>[] = [
   {
@@ -46,7 +92,8 @@ export const columns: ColumnDef<Transaction>[] = [
     cell: ({ row }) => {
         const date = new Date(row.getValue("date"));
         return <div className="text-left">{date.toLocaleDateString()}</div>
-    }
+    },
+    filterFn: dateFilterFn,
   },
   {
     accessorKey: "type",
@@ -63,6 +110,10 @@ export const columns: ColumnDef<Transaction>[] = [
   {
     accessorKey: "category",
     header: "Category",
+  },
+  {
+    accessorKey: "subcategory",
+    header: "Subcategory",
   },
   {
     accessorKey: "amount",
@@ -88,6 +139,7 @@ export const columns: ColumnDef<Transaction>[] = [
  
       return <div className="text-right font-medium">{formatted}</div>
     },
+    filterFn: amountFilterFn,
   },
   {
     accessorKey: "comment",
