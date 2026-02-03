@@ -142,6 +142,15 @@ export default function TransactionsPage() {
     reader.readAsText(file);
   };
 
+  const handleDeleteTransactions = (rowsToDelete: Transaction[]) => {
+    const idsToDelete = new Set(rowsToDelete.map((row) => row.id));
+    setData((prevData) => prevData.filter((t) => !idsToDelete.has(t.id)));
+    toast({
+      title: 'Transactions Deleted',
+      description: `${idsToDelete.size} transaction(s) have been deleted.`,
+    });
+  };
+
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
@@ -166,7 +175,7 @@ export default function TransactionsPage() {
           <Skeleton className="h-96 w-full rounded-md border" />
         </div>
       ) : (
-        <DataTable columns={columns} data={data} />
+        <DataTable columns={columns} data={data} onDelete={handleDeleteTransactions} />
       )}
     </div>
   );

@@ -28,11 +28,13 @@ import { DataTableToolbar } from "./data-table-toolbar"
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  onDelete: (rows: TData[]) => void
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  onDelete,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
@@ -64,7 +66,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} />
+      <DataTableToolbar table={table} onDelete={onDelete} />
       <div className="rounded-md border">
         <Table>
           <TableHeader>
