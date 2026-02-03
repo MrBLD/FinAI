@@ -88,9 +88,9 @@ export function DataTableToolbar<TData>({
     table.resetRowSelection()
   }
   
-  const types = React.useMemo(() => Array.from(table.getPreFilteredRowModel().flatRows.reduce((acc, row) => acc.add(row.getValue('type')), new Set<string>())).sort(), [table.getPreFilteredRowModel()]);
-  const categories = React.useMemo(() => Array.from(table.getPreFilteredRowModel().flatRows.reduce((acc, row) => acc.add(row.getValue('category')), new Set<string>())).sort(), [table.getPreFilteredRowModel()]);
-  const subcategories = React.useMemo(() => Array.from(table.getPreFilteredRowModel().flatRows.reduce((acc, row) => acc.add(row.getValue('subcategory')), new Set<string>())).sort(), [table.getPreFilteredRowModel()]);
+  const types = React.useMemo(() => Array.from(table.getPreFilteredRowModel().flatRows.reduce((acc, row) => acc.add(row.getValue('type')), new Set<string>())).sort().filter(Boolean), [table.getPreFilteredRowModel()]);
+  const categories = React.useMemo(() => Array.from(table.getPreFilteredRowModel().flatRows.reduce((acc, row) => acc.add(row.getValue('category')), new Set<string>())).sort().filter(Boolean), [table.getPreFilteredRowModel()]);
+  const subcategories = React.useMemo(() => Array.from(table.getPreFilteredRowModel().flatRows.reduce((acc, row) => acc.add(row.getValue('subcategory')), new Set<string>())).sort().filter(Boolean), [table.getPreFilteredRowModel()]);
   const date = table.getColumn('date')?.getFilterValue() as DateRange | undefined;
 
 
