@@ -3,6 +3,7 @@ import './globals.css';
 import { AppShell } from '@/components/app-shell';
 import { Toaster } from '@/components/ui/toaster';
 import { TransactionsProvider } from '@/context/transactions-context';
+import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
   title: 'FinanceFlow Dashboard',
@@ -15,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -25,10 +26,17 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <TransactionsProvider>
-          <AppShell>{children}</AppShell>
-        </TransactionsProvider>
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TransactionsProvider>
+            <AppShell>{children}</AppShell>
+          </TransactionsProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

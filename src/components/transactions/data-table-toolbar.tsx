@@ -88,9 +88,29 @@ export function DataTableToolbar<TData>({
     table.resetRowSelection()
   }
   
-  const types = React.useMemo(() => Array.from(table.getPreFilteredRowModel().flatRows.reduce((acc, row) => acc.add(row.getValue('type')), new Set<string>())).sort().filter(Boolean), [table.getPreFilteredRowModel()]);
-  const categories = React.useMemo(() => Array.from(table.getPreFilteredRowModel().flatRows.reduce((acc, row) => acc.add(row.getValue('category')), new Set<string>())).sort().filter(Boolean), [table.getPreFilteredRowModel()]);
-  const subcategories = React.useMemo(() => Array.from(table.getPreFilteredRowModel().flatRows.reduce((acc, row) => acc.add(row.getValue('subcategory')), new Set<string>())).sort().filter(Boolean), [table.getPreFilteredRowModel()]);
+  const types = React.useMemo(() => Array.from(table.getPreFilteredRowModel().flatRows.reduce((acc, row) => acc.add(row.getValue('type')), new Set<string>())).sort().filter(Boolean), [table]);
+  const categories = React.useMemo(() => Array.from(table.getPreFilteredRowModel().flatRows.reduce((acc, row) => acc.add(row.getValue('category')), new Set<string>())).sort().filter(Boolean), [table]);
+  
+  const selectedCategory = table.getColumn('category')?.getFilterValue() as string;
+
+  const subcategories = React.useMemo(() => {
+    const subcategorySet = new Set<string>();
+    table.getPreFilteredRowModel().flatRows.forEach(row => {
+      if (selectedCategory && row.getValue('category') !== selectedCategory) {
+        return;
+      }
+      const subcat = row.getValue('subcategory') as string;
+      if (subcat) {
+        subcategorySet.add(subcat);
+      }
+    });
+    return Array.from(subcategorySet).sort();
+  }, [table, selectedCategory]);
+
+  React.useEffect(() => {
+    table.getColumn('subcategory')?.setFilterValue(undefined);
+  }, [selectedCategory, table]);
+
   const date = table.getColumn('date')?.getFilterValue() as DateRange | undefined;
 
 
@@ -169,6 +189,7 @@ export function DataTableToolbar<TData>({
           <Select
             value={(table.getColumn('subcategory')?.getFilterValue() as string) ?? 'all'}
             onValueChange={(value) => table.getColumn('subcategory')?.setFilterValue(value === 'all' ? undefined : value)}
+            disabled={subcategories.length === 0}
           >
             <SelectTrigger className="h-8 w-full sm:w-[150px]">
               <SelectValue placeholder="Subcategory" />
@@ -221,6 +242,7 @@ export function DataTableToolbar<TData>({
           size="sm"
           className="h-8"
           onClick={handleExport}
+          disabled={table.getFilteredRowModel().rows.length === 0}
         >
           <Download className="mr-2 h-4 w-4" />
           Export

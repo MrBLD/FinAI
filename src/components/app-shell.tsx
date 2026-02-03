@@ -38,6 +38,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const userAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar');
 
+  const allNavItems = [...navItems, { href: '/settings', label: 'Settings', icon: Settings }];
+
   return (
     <SidebarProvider>
       <Sidebar>
@@ -69,9 +71,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <SidebarFooter>
            <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Settings">
-                    <Settings />
-                    <span>Settings</span>
+                <SidebarMenuButton asChild isActive={pathname === '/settings'} tooltip="Settings">
+                    <Link href="/settings">
+                        <Settings />
+                        <span>Settings</span>
+                    </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
@@ -96,7 +100,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-4">
                  <SidebarTrigger className="md:hidden"/>
                  <h1 className="text-2xl font-bold tracking-tight">
-                    {navItems.find(item => item.href === pathname)?.label || 'Dashboard'}
+                    {allNavItems.find(item => item.href === pathname)?.label || 'Dashboard'}
                 </h1>
             </div>
             <GlobalFilters />
