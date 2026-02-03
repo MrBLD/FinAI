@@ -4,10 +4,26 @@ import { AppShell } from '@/components/app-shell';
 import { Toaster } from '@/components/ui/toaster';
 import { TransactionsProvider } from '@/context/transactions-context';
 import { ThemeProvider } from '@/components/theme-provider';
+import { PWARegister } from '@/components/pwa-register';
 
 export const metadata: Metadata = {
   title: 'FinanceFlow Dashboard',
   description: 'Your personal finance overview.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'FinAI',
+  },
+  icons: {
+    icon: [
+      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -26,6 +42,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
+        <PWARegister />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
