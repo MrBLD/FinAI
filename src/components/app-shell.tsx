@@ -1,0 +1,106 @@
+"use client";
+
+import * as React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { cn } from '@/lib/utils';
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarTrigger,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarInset,
+} from '@/components/ui/sidebar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  LayoutDashboard,
+  TrendingUp,
+  ArrowLeftRight,
+  Settings,
+} from 'lucide-react';
+import { Logo } from '@/components/icons';
+import { GlobalFilters } from './global-filters';
+
+const navItems = [
+  { href: '/', label: 'Overview', icon: LayoutDashboard },
+  { href: '/trends', label: 'Long Term', icon: TrendingUp },
+  { href: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
+];
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const userAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar');
+
+  return (
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader>
+          <div className="flex items-center gap-2">
+            <Logo className="size-8 text-primary" />
+            <span className="text-lg font-semibold">FinanceFlow</span>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            {navItems.map((item) => (
+              <SidebarMenuItem key={item.href}>
+                <Link href={item.href} legacyBehavior passHref>
+                  <SidebarMenuButton
+                    isActive={pathname === item.href}
+                    tooltip={item.label}
+                  >
+                    <item.icon />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+           <SidebarMenu>
+            <SidebarMenuItem>
+                <SidebarMenuButton tooltip="Settings">
+                    <Settings />
+                    <span>Settings</span>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <div className="flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm">
+                {userAvatar && (
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={userAvatar.imageUrl} alt="User Avatar" data-ai-hint={userAvatar.imageHint}/>
+                        <AvatarFallback>JD</AvatarFallback>
+                    </Avatar>
+                )}
+                <div className="flex flex-col truncate">
+                    <span className="font-medium">John Doe</span>
+                    <span className="text-xs text-muted-foreground">john.doe@example.com</span>
+                </div>
+              </div>
+            </SidebarMenuItem>
+           </SidebarMenu>
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset className="p-4 lg:p-6">
+        <header className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+                 <SidebarTrigger className="md:hidden"/>
+                 <h1 className="text-2xl font-bold tracking-tight">
+                    {navItems.find(item => item.href === pathname)?.label || 'Dashboard'}
+                </h1>
+            </div>
+            <GlobalFilters />
+        </header>
+        {children}
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}
