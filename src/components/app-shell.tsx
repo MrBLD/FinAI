@@ -55,6 +55,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   asChild
                   isActive={pathname === item.href}
                   tooltip={item.label}
+                  suppressHydrationWarning
                 >
                   <Link href={item.href}>
                     <item.icon />
