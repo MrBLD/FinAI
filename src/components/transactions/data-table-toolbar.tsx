@@ -104,7 +104,7 @@ export function DataTableToolbar<TData>({
         subcategorySet.add(subcat);
       }
     });
-    return Array.from(subcategorySet).sort();
+    return Array.from(subcategorySet).sort().filter(Boolean);
   }, [table, selectedCategory]);
 
   React.useEffect(() => {
@@ -112,6 +112,13 @@ export function DataTableToolbar<TData>({
   }, [selectedCategory, table]);
 
   const date = table.getColumn('date')?.getFilterValue() as DateRange | undefined;
+  const [calendarMonth, setCalendarMonth] = React.useState<Date | undefined>(undefined);
+
+  const handleCalendarOpen = (open: boolean) => {
+    if (open) {
+      setCalendarMonth(date?.from || new Date());
+    }
+  };
 
 
   return (
@@ -126,7 +133,7 @@ export function DataTableToolbar<TData>({
             }
             className="h-8 w-[150px] lg:w-[250px]"
           />
-          <Popover>
+          <Popover onOpenChange={handleCalendarOpen}>
               <PopoverTrigger asChild>
                   <Button
                   id="date"
@@ -155,10 +162,11 @@ export function DataTableToolbar<TData>({
                   <Calendar
                   initialFocus
                   mode="range"
-                  defaultMonth={date?.from}
+                  month={calendarMonth}
+                  onMonthChange={setCalendarMonth}
                   selected={date}
                   onSelect={(range) => table.getColumn('date')?.setFilterValue(range)}
-                  numberOfMonths={2}
+                  numberOfMonths={1}
                   />
               </PopoverContent>
           </Popover>

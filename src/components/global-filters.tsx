@@ -25,6 +25,9 @@ import type { DateRange } from 'react-day-picker';
 export function GlobalFilters() {
   const { transactions } = useTransactions();
   const [date, setDate] = React.useState<DateRange | undefined>();
+  const [calendarMonth, setCalendarMonth] = React.useState<Date | undefined>(
+    undefined
+  );
 
   const accounts = React.useMemo(() => {
     const accountSet = new Set(transactions.map(t => t.account));
@@ -43,9 +46,15 @@ export function GlobalFilters() {
     }
   }, [transactions]);
 
+  const handleCalendarOpen = (open: boolean) => {
+    if (open) {
+      setCalendarMonth(date?.from || new Date());
+    }
+  };
+
   return (
     <div className="flex items-center space-x-2">
-      <Popover>
+      <Popover onOpenChange={handleCalendarOpen}>
         <PopoverTrigger asChild>
           <Button
             id="date"
@@ -75,10 +84,11 @@ export function GlobalFilters() {
           <Calendar
             initialFocus
             mode="range"
-            defaultMonth={date?.from}
             selected={date}
             onSelect={setDate}
-            numberOfMonths={2}
+            month={calendarMonth}
+            onMonthChange={setCalendarMonth}
+            numberOfMonths={1}
           />
         </PopoverContent>
       </Popover>
