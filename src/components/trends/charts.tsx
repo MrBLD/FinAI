@@ -52,7 +52,7 @@ const processTopCategoryTrends = (transactions: Transaction[]) => {
     transactions.filter(t => t.type === 'expense').forEach(t => {
         categorySpend[t.category] = (categorySpend[t.category] || 0) + t.amount;
     });
-    const topCategories = Object.entries(categorySpend).sort((a,b) => b[1] - a[1]).slice(0, 3).map(c => c[0]);
+    const topCategories = Object.entries(categorySpend).sort((a,b) => b[1] - a[1]).slice(0, 5).map(c => c[0]);
 
     const monthlyCategorySpend: { [key: string]: { [category: string]: number } } = {};
     transactions.filter(t => t.type === 'expense' && topCategories.includes(t.category)).forEach(t => {
@@ -61,11 +61,16 @@ const processTopCategoryTrends = (transactions: Transaction[]) => {
         monthlyCategorySpend[monthKey][t.category] = (monthlyCategorySpend[monthKey][t.category] || 0) + t.amount;
     });
 
+    const data = Object.entries(monthlyCategorySpend).map(([monthKey, spends]) => {
+        const entry: {[key: string]: any} = { month: format(new Date(monthKey + '-02'), 'MMM yy') };
+        for (const cat of topCategories) {
+            entry[cat] = spends[cat] || 0;
+        }
+        return entry;
+    }).sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
+
     return {
-        data: Object.entries(monthlyCategorySpend).map(([monthKey, spends]) => ({
-            month: format(new Date(monthKey + '-02'), 'MMM yy'),
-            ...spends
-        })).sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime()),
+        data,
         categories: topCategories,
     };
 };
@@ -86,6 +91,14 @@ export function TrendsCharts({ transactions, loading }: { transactions: Transact
   const netCashflowData = React.useMemo(() => processNetCashflowData(transactions), [transactions]);
   const cumulativeData = React.useMemo(() => processCumulativeCashflowData(netCashflowData), [netCashflowData]);
   const topCategoryTrends = React.useMemo(() => processTopCategoryTrends(transactions), [transactions]);
+
+  const categoryTrendConfig = React.useMemo(() => {
+    return topCategoryTrends.categories.reduce((config, category, index) => {
+      config[category] = { label: category, color: `hsl(var(--chart-${index + 1}))` };
+      return config;
+    }, {} as any);
+  }, [topCategoryTrends.categories]);
+
 
   return (
     <div className="grid gap-4">
@@ -121,20 +134,16 @@ export function TrendsCharts({ transactions, loading }: { transactions: Transact
         </ChartContainer>
       </ChartCard>
       
-      <ChartCard title="Top 3 Category Spending" description="How your spending in top categories changed over time." loading={loading}>
-        <ChartContainer config={{
-            [topCategoryTrends.categories[0]]: { label: topCategoryTrends.categories[0], color: 'hsl(var(--chart-1))' },
-            [topCategoryTrends.categories[1]]: { label: topCategoryTrends.categories[1], color: 'hsl(var(--chart-2))' },
-            [topCategoryTrends.categories[2]]: { label: topCategoryTrends.categories[2], color: 'hsl(var(--chart-3))' },
-        }} className="h-[300px] w-full">
+      <ChartCard title="Top 5 Category Spending" description="How your spending in top categories changed over time." loading={loading}>
+        <ChartContainer config={categoryTrendConfig} className="h-[300px] w-full">
             <LineChart data={topCategoryTrends.data}>
                 <CartesianGrid vertical={false} />
                 <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} />
                 <YAxis />
                 <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
                 <ChartLegend content={<ChartLegendContent />} />
-                {topCategoryTrends.categories.map((cat, i) => (
-                    <Line key={cat} type="monotone" dataKey={cat} stroke={`var(--color-${cat})`} strokeWidth={2} />
+                {topCategoryTrends.categories.map((cat) => (
+                    <Line key={cat} type="monotone" dataKey={cat} stroke={`var(--color-${cat.replace(/\\s+/g, '-')})`} strokeWidth={2} />
                 ))}
             </LineChart>
         </ChartContainer>

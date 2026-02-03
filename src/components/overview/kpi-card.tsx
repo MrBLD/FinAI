@@ -7,9 +7,10 @@ type KpiCardProps = {
   icon: LucideIcon;
   color: string;
   isPercentage?: boolean;
+  description?: string;
 };
 
-export default function KpiCard({ title, value, icon: Icon, color, isPercentage = false }: KpiCardProps) {
+export default function KpiCard({ title, value, icon: Icon, color, isPercentage = false, description }: KpiCardProps) {
   const formattedValue = isPercentage
     ? `${value.toFixed(1)}%`
     : new Intl.NumberFormat('en-US', {
@@ -25,6 +26,7 @@ export default function KpiCard({ title, value, icon: Icon, color, isPercentage 
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{formattedValue}</div>
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </CardContent>
     </Card>
   );
