@@ -156,197 +156,199 @@ export function DataTableToolbar<TData>({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex flex-1 flex-wrap items-center gap-2">
-          <Input
-            placeholder="Filter by comment..."
-            value={(table.getColumn('comment')?.getFilterValue() as string) ?? ''}
-            onChange={(event) =>
-              table.getColumn('comment')?.setFilterValue(event.target.value)
-            }
-            className="h-8 w-full sm:w-[150px] lg:w-[250px]"
-          />
-          <Popover onOpenChange={handleCalendarOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                id="date"
-                variant={'outline'}
-                className={cn(
-                  'h-8 w-full sm:w-[240px] justify-start text-left font-normal',
-                  !date && 'text-muted-foreground'
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date?.from ? (
-                  date.to ? (
-                    <>
-                      {format(date.from, 'LLL dd, y')} -{' '}
-                      {format(date.to, 'LLL dd, y')}
-                    </>
-                  ) : (
-                    format(date.from, 'LLL dd, y')
-                  )
-                ) : (
-                  <span>Filter by date...</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                initialFocus
-                mode="range"
-                month={calendarMonth}
-                onMonthChange={setCalendarMonth}
-                selected={date}
-                onSelect={(range) => table.getColumn('date')?.setFilterValue(range)}
-                numberOfMonths={1}
-                captionLayout="dropdown-buttons"
-                fromYear={2000}
-                toYear={new Date().getFullYear() + 5}
-              />
-            </PopoverContent>
-          </Popover>
-          <Select
-            value={(table.getColumn('type')?.getFilterValue() as string) ?? 'all'}
-            onValueChange={(value) =>
-              table.getColumn('type')?.setFilterValue(value === 'all' ? undefined : value)
-            }
-          >
-            <SelectTrigger className="h-8 w-full sm:w-[150px]">
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              {types.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={
-              (table.getColumn('category')?.getFilterValue() as string) ?? 'all'
-            }
-            onValueChange={(value) =>
-              table
-                .getColumn('category')
-                ?.setFilterValue(value === 'all' ? undefined : value)
-            }
-          >
-            <SelectTrigger className="h-8 w-full sm:w-[150px]">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={
-              (table.getColumn('subcategory')?.getFilterValue() as string) ??
-              'all'
-            }
-            onValueChange={(value) =>
-              table
-                .getColumn('subcategory')
-                ?.setFilterValue(value === 'all' ? undefined : value)
-            }
-            disabled={subcategories.length === 0}
-          >
-            <SelectTrigger className="h-8 w-full sm:w-[150px]">
-              <SelectValue placeholder="Subcategory" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Subcategories</SelectItem>
-              {subcategories.map((subcat) => (
-                <SelectItem key={subcat} value={subcat}>
-                  {subcat}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Input
-            placeholder="Min amount"
-            type="number"
-            value={
-              (table.getColumn('amount')?.getFilterValue() as [
-                number,
-                number
-              ])?.[0] ?? ''
-            }
-            onChange={(event) => {
-              const value = event.target.value;
-              const currentFilter = table
-                .getColumn('amount')
-                ?.getFilterValue() as [number, number] | undefined;
-              const newMin = value === '' ? undefined : Number(value);
-              table
-                .getColumn('amount')
-                ?.setFilterValue([newMin, currentFilter?.[1]]);
-            }}
-            className="h-8 w-full sm:w-[100px]"
-          />
-          <Input
-            placeholder="Max amount"
-            type="number"
-            value={
-              (table.getColumn('amount')?.getFilterValue() as [
-                number,
-                number
-              ])?.[1] ?? ''
-            }
-            onChange={(event) => {
-              const value = event.target.value;
-              const currentFilter = table
-                .getColumn('amount')
-                ?.getFilterValue() as [number, number] | undefined;
-              const newMax = value === '' ? undefined : Number(value);
-              table
-                .getColumn('amount')
-                ?.setFilterValue([currentFilter?.[0], newMax]);
-            }}
-            className="h-8 w-full sm:w-[100px]"
-          />
-          {isFiltered && (
+      <div className="flex flex-col gap-2 md:flex-row md:flex-wrap">
+        <Input
+          placeholder="Filter by comment..."
+          value={(table.getColumn('comment')?.getFilterValue() as string) ?? ''}
+          onChange={(event) =>
+            table.getColumn('comment')?.setFilterValue(event.target.value)
+          }
+          className="h-8 w-full md:w-[150px] lg:w-[250px]"
+        />
+        <Popover onOpenChange={handleCalendarOpen}>
+          <PopoverTrigger asChild>
             <Button
-              variant="ghost"
-              onClick={() => table.resetColumnFilters()}
-              className="h-8 px-2 lg:px-3"
+              id="date"
+              variant={'outline'}
+              className={cn(
+                'h-8 w-full md:w-[240px] justify-start text-left font-normal',
+                !date && 'text-muted-foreground'
+              )}
             >
-              Reset
-              <X className="ml-2 h-4 w-4" />
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date?.from ? (
+                date.to ? (
+                  <>
+                    {format(date.from, 'LLL dd, y')} -{' '}
+                    {format(date.to, 'LLL dd, y')}
+                  </>
+                ) : (
+                  format(date.from, 'LLL dd, y')
+                )
+              ) : (
+                <span>Filter by date...</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              initialFocus
+              mode="range"
+              month={calendarMonth}
+              onMonthChange={setCalendarMonth}
+              selected={date}
+              onSelect={(range) => table.getColumn('date')?.setFilterValue(range)}
+              numberOfMonths={1}
+              captionLayout="dropdown-buttons"
+              fromYear={2000}
+              toYear={new Date().getFullYear() + 5}
+            />
+          </PopoverContent>
+        </Popover>
+        <Select
+          value={(table.getColumn('type')?.getFilterValue() as string) ?? 'all'}
+          onValueChange={(value) =>
+            table.getColumn('type')?.setFilterValue(value === 'all' ? undefined : value)
+          }
+        >
+          <SelectTrigger className="h-8 w-full md:w-[150px]">
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            {types.map((type) => (
+              <SelectItem key={type} value={type}>
+                {type}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={
+            (table.getColumn('category')?.getFilterValue() as string) ?? 'all'
+          }
+          onValueChange={(value) =>
+            table
+              .getColumn('category')
+              ?.setFilterValue(value === 'all' ? undefined : value)
+          }
+        >
+          <SelectTrigger className="h-8 w-full md:w-[150px]">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat} value={cat}>
+                {cat}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={
+            (table.getColumn('subcategory')?.getFilterValue() as string) ??
+            'all'
+          }
+          onValueChange={(value) =>
+            table
+              .getColumn('subcategory')
+              ?.setFilterValue(value === 'all' ? undefined : value)
+          }
+          disabled={subcategories.length === 0}
+        >
+          <SelectTrigger className="h-8 w-full md:w-[150px]">
+            <SelectValue placeholder="Subcategory" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Subcategories</SelectItem>
+            {subcategories.map((subcat) => (
+              <SelectItem key={subcat} value={subcat}>
+                {subcat}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Input
+          placeholder="Min amount"
+          type="number"
+          value={
+            (table.getColumn('amount')?.getFilterValue() as [
+              number,
+              number
+            ])?.[0] ?? ''
+          }
+          onChange={(event) => {
+            const value = event.target.value;
+            const currentFilter = table
+              .getColumn('amount')
+              ?.getFilterValue() as [number, number] | undefined;
+            const newMin = value === '' ? undefined : Number(value);
+            table
+              .getColumn('amount')
+              ?.setFilterValue([newMin, currentFilter?.[1]]);
+          }}
+          className="h-8 w-full md:w-[100px]"
+        />
+        <Input
+          placeholder="Max amount"
+          type="number"
+          value={
+            (table.getColumn('amount')?.getFilterValue() as [
+              number,
+              number
+            ])?.[1] ?? ''
+          }
+          onChange={(event) => {
+            const value = event.target.value;
+            const currentFilter = table
+              .getColumn('amount')
+              ?.getFilterValue() as [number, number] | undefined;
+            const newMax = value === '' ? undefined : Number(value);
+            table
+              .getColumn('amount')
+              ?.setFilterValue([currentFilter?.[0], newMax]);
+          }}
+          className="h-8 w-full md:w-[100px]"
+        />
+        {isFiltered && (
+          <Button
+            variant="ghost"
+            onClick={() => table.resetColumnFilters()}
+            className="h-8 px-2 lg:px-3"
+          >
+            Reset
+            <X className="ml-2 h-4 w-4" />
+          </Button>
+        )}
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          {numSelected > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              className="h-8 w-full sm:w-auto"
+              onClick={handleDelete}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete ({numSelected})
             </Button>
           )}
         </div>
-        <DataTableViewOptions table={table} />
-      </div>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8"
-          onClick={handleExport}
-          disabled={table.getFilteredRowModel().rows.length === 0}
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Export
-        </Button>
-        {numSelected > 0 && (
-          <Button
-            variant="destructive"
-            size="sm"
-            className="h-8"
-            onClick={handleDelete}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete ({numSelected})
-          </Button>
-        )}
+        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-full sm:w-auto"
+              onClick={handleExport}
+              disabled={table.getFilteredRowModel().rows.length === 0}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+            <DataTableViewOptions table={table} />
+        </div>
       </div>
     </div>
   );

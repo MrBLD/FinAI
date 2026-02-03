@@ -138,34 +138,32 @@ export default function TransactionsPage() {
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between py-4">
-        <div className="flex items-center gap-2">
-          <Button onClick={() => fileInputRef.current?.click()} disabled={loading}>
-            <Upload className="mr-2 h-4 w-4" />
-            {loading ? 'Processing...' : 'Upload CSV'}
-          </Button>
-          <Input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            accept=".csv"
-            onChange={handleFileUpload}
-          />
-           <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
-                <DialogTrigger asChild>
-                    <Button variant="outline">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Manual
-                    </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Add Transaction</DialogTitle>
-                    </DialogHeader>
-                    <TransactionForm onFinished={() => setAddDialogOpen(false)} />
-                </DialogContent>
-            </Dialog>
-        </div>
+      <div className="flex flex-wrap items-center gap-2 py-4">
+        <Button onClick={() => fileInputRef.current?.click()} disabled={loading}>
+          <Upload className="mr-2 h-4 w-4" />
+          {loading ? 'Processing...' : 'Upload CSV'}
+        </Button>
+        <Input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept=".csv"
+          onChange={handleFileUpload}
+        />
+        <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Manual
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add Transaction</DialogTitle>
+            </DialogHeader>
+            <TransactionForm onFinished={() => setAddDialogOpen(false)} />
+          </DialogContent>
+        </Dialog>
       </div>
       {loading && transactions.length === 0 ? (
         <div className="space-y-4">
