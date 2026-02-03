@@ -3,7 +3,8 @@
 import * as React from 'react';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import { useTransactions } from '@/context/transactions-context';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '@/lib/db';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -23,24 +24,26 @@ import {
 import type { DateRange } from 'react-day-picker';
 
 export function GlobalFilters() {
-  const { transactions } = useTransactions();
+  const transactions = useLiveQuery(() => db.transactions.toArray());
   const [date, setDate] = React.useState<DateRange | undefined>();
   const [calendarMonth, setCalendarMonth] = React.useState<Date | undefined>(
     undefined
   );
 
   const accounts = React.useMemo(() => {
+    if (!transactions) return [];
     const accountSet = new Set(transactions.map((t) => t.account));
     return Array.from(accountSet).sort();
   }, [transactions]);
 
   const categories = React.useMemo(() => {
+    if (!transactions) return [];
     const categorySet = new Set(transactions.map((t) => t.category));
     return Array.from(categorySet).sort();
   }, [transactions]);
 
   React.useEffect(() => {
-    if (transactions.length > 0) {
+    if (transactions && transactions.length > 0) {
       const dates = transactions.map((t) => new Date(t.date));
       setDate({
         from: new Date(Math.min(...dates.map((d) => d.getTime()))),
@@ -66,7 +69,7 @@ export function GlobalFilters() {
               'w-full sm:w-[260px] justify-start text-left font-normal',
               !date && 'text-muted-foreground'
             )}
-            disabled={transactions.length === 0}
+            disabled={!transactions || transactions.length === 0}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {date?.from ? (

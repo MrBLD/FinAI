@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useTransactions } from '@/context/transactions-context';
+import { db } from '@/lib/db';
 import { transactionCategories } from '@/lib/categories';
 import type { Transaction } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -52,7 +52,6 @@ interface TransactionFormProps {
 }
 
 export function TransactionForm({ transaction, onFinished }: TransactionFormProps) {
-  const { addTransactions, updateTransaction } = useTransactions();
   const { toast } = useToast();
 
   const defaultValues: Partial<TransactionFormValues> = transaction
@@ -85,21 +84,31 @@ export function TransactionForm({ transaction, onFinished }: TransactionFormProp
     form.resetField('subcategory', { defaultValue: '' });
   }, [selectedCategory, form]);
 
-  function onSubmit(data: TransactionFormValues) {
+  async function onSubmit(data: TransactionFormValues) {
     const transactionData = {
       ...data,
       type: data.type.toLowerCase() as 'income' | 'expense',
       date: data.date.toISOString(),
+      comment: data.comment || '',
     };
 
-    if (transaction) {
-      updateTransaction({ ...transaction, ...transactionData });
-      toast({ title: 'Transaction Updated' });
-    } else {
-      addTransactions([{ ...transactionData, id: `manual_${new Date().getTime()}` }]);
-      toast({ title: 'Transaction Added' });
+    try {
+      if (transaction && transaction.id) {
+        await db.transactions.update(transaction.id, transactionData);
+        toast({ title: 'Transaction Updated' });
+      } else {
+        await db.transactions.add(transactionData);
+        toast({ title: 'Transaction Added' });
+      }
+      onFinished();
+    } catch (error) {
+        console.error("Failed to save transaction: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Save Failed',
+            description: 'Could not save the transaction to the local database.'
+        })
     }
-    onFinished();
   }
 
   return (

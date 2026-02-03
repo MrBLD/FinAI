@@ -1,12 +1,14 @@
 "use client";
 
 import { TrendsCharts } from '@/components/trends/charts';
-import { useTransactions } from '@/context/transactions-context';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '@/lib/db';
 
 export default function TrendsPage() {
-  const { transactions, loading } = useTransactions();
+  const transactions = useLiveQuery(() => db.transactions.toArray());
+  const loading = transactions === undefined;
 
-  if (loading && transactions.length === 0) {
+  if (loading) {
       return (
           <div className="flex-1 space-y-4">
               <TrendsCharts transactions={[]} loading={true} />

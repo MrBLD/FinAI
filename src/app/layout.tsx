@@ -2,12 +2,13 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AppShell } from '@/components/app-shell';
 import { Toaster } from '@/components/ui/toaster';
-import { TransactionsProvider } from '@/context/transactions-context';
 import { ThemeProvider } from '@/components/theme-provider';
+import { Pwa } from '@/components/pwa';
 
 export const metadata: Metadata = {
   title: 'FinanceFlow Dashboard',
   description: 'Your personal finance overview.',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
@@ -32,10 +33,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <TransactionsProvider>
-            <AppShell>{children}</AppShell>
-          </TransactionsProvider>
+          <AppShell>{children}</AppShell>
           <Toaster />
+          <Pwa />
         </ThemeProvider>
       </body>
     </html>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useTransactions } from "@/context/transactions-context";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -15,21 +16,60 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2 } from "lucide-react";
+import { Trash2, Download } from "lucide-react";
+import type { Transaction } from "@/lib/types";
+import Papa from "papaparse";
 
 export function DataManagement() {
-  const { setTransactions, transactions } = useTransactions();
+  const transactions = useLiveQuery(() => db.transactions.toArray());
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleClearData = () => {
-    setTransactions([]);
+  const handleClearData = async () => {
+    await db.transactions.clear();
     toast({
       title: "Data Cleared",
       description: "All transaction data has been removed.",
     });
     setIsAlertOpen(false);
   };
+
+  const handleExportData = async () => {
+    if (!transactions || transactions.length === 0) {
+        toast({
+            variant: "destructive",
+            title: "Export Failed",
+            description: "There is no data to export."
+        });
+        return;
+    }
+    try {
+        const csv = Papa.unparse(transactions.map(t => ({
+            ...t, 
+            id: undefined // Don't export the internal ID
+        })));
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'finance-flow-backup.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast({
+            title: "Export Successful",
+            description: "Your data has been exported as a CSV file."
+        })
+    } catch(error) {
+        console.error("Failed to export data: ", error);
+        toast({
+            variant: "destructive",
+            title: "Export Failed",
+            description: "Could not export your data."
+        })
+    }
+  }
 
   return (
     <>
@@ -40,7 +80,21 @@ export function DataManagement() {
             Manage your transaction data.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+                <p className="font-medium">Export Data</p>
+                <p className="text-sm text-muted-foreground">Download all your transactions as a CSV file.</p>
+            </div>
+            <Button 
+                variant="outline" 
+                onClick={handleExportData}
+                disabled={!transactions || transactions.length === 0}
+            >
+                <Download className="mr-2 h-4 w-4" />
+                Backup/Export
+            </Button>
+          </div>
           <div className="flex items-center justify-between">
             <div>
                 <p className="font-medium">Clear All Data</p>
@@ -49,7 +103,7 @@ export function DataManagement() {
             <Button 
                 variant="destructive" 
                 onClick={() => setIsAlertOpen(true)}
-                disabled={transactions.length === 0}
+                disabled={!transactions || transactions.length === 0}
             >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Clear Data

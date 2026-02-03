@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useTransactions } from '@/context/transactions-context';
+import { useLiveQuery } from 'dexie-react-hooks';
+
 import type { Transaction } from '@/lib/types';
+import { db } from '@/lib/db';
 import { JournalCard } from '@/components/journal/journal-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -12,23 +14,23 @@ import { PlusCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function JournalPage() {
-  const { transactions, loading, deleteTransactions } = useTransactions();
+  const transactions = useLiveQuery(() => db.transactions.orderBy('date').reverse().toArray());
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const groupedTransactions = transactions.reduce((acc, tx) => {
+  const groupedTransactions = transactions?.reduce((acc, tx) => {
     const date = new Date(tx.date).toDateString();
     if (!acc[date]) {
       acc[date] = [];
     }
     acc[date].push(tx);
     return acc;
-  }, {} as Record<string, Transaction[]>);
+  }, {} as Record<string, Transaction[]>) || {};
 
-  const handleDelete = () => {
-    if (editingTransaction) {
-      deleteTransactions([editingTransaction.id]);
+  const handleDelete = async () => {
+    if (editingTransaction && editingTransaction.id) {
+      await db.transactions.delete(editingTransaction.id);
       toast({
         title: 'Transaction Deleted',
         description: 'The transaction has been successfully deleted.',
@@ -56,7 +58,7 @@ export default function JournalPage() {
         </Dialog>
       </div>
 
-      {loading && transactions.length === 0 ? (
+      {transactions === undefined ? (
         <div className="space-y-4">
           <Skeleton className="h-24 w-full" />
           <Skeleton className="h-24 w-full" />

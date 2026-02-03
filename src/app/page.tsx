@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useTransactions } from '@/context/transactions-context';
+import { useLiveQuery } from 'dexie-react-hooks';
+
+import { db } from '@/lib/db';
 import KpiCard from '@/components/overview/kpi-card';
 import { OverviewCharts } from '@/components/overview/charts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,8 +25,34 @@ import { Label } from '@/components/ui/label';
 import { parseISO, format } from 'date-fns';
 
 export default function OverviewPage() {
-  const { transactions: data, loading } = useTransactions();
+  const data = useLiveQuery(() => db.transactions.toArray());
   const [monthlyBudget, setMonthlyBudget] = useState(12000);
+
+  if (data === undefined) {
+    return (
+        <div className="flex-1 space-y-4">
+          <div className="flex justify-end items-center gap-2">
+            <Skeleton className="h-6 w-24" />
+            <Skeleton className="w-32 h-8" />
+          </div>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+              {Array.from({length: 12}).map((_, index) => (
+                  <Card key={index}>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <Skeleton className="h-4 w-2/3" />
+                      <Skeleton className="h-4 w-4" />
+                  </CardHeader>
+                  <CardContent>
+                      <Skeleton className="h-8 w-3/4" />
+                      <Skeleton className="mt-2 h-4 w-1/2" />
+                  </CardContent>
+                  </Card>
+              ))}
+          </div>
+          <OverviewCharts transactions={[]} loading={true} />
+        </div>
+      );
+  }
 
   const expenseData = data.filter((t) => t.type === 'expense');
   const incomeData = data.filter((t) => t.type === 'income');
@@ -163,32 +191,6 @@ export default function OverviewPage() {
     },
   ];
 
-  if (loading && data.length === 0) {
-    return (
-      <div className="flex-1 space-y-4">
-        <div className="flex justify-end items-center gap-2">
-          <Skeleton className="h-6 w-24" />
-          <Skeleton className="w-32 h-8" />
-        </div>
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {kpis.map((kpi, index) => (
-            <Card key={index}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
-                <Skeleton className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-3/4" />
-                <Skeleton className="mt-2 h-4 w-1/2" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        <OverviewCharts transactions={[]} loading={true} />
-      </div>
-    );
-  }
-
   return (
     <div className="flex-1 space-y-4">
       {data.length > 0 ? (
@@ -219,7 +221,7 @@ export default function OverviewPage() {
               />
             ))}
           </div>
-          <OverviewCharts transactions={data} loading={loading} />
+          <OverviewCharts transactions={data} loading={data === undefined} />
         </>
       ) : (
         <div className="flex flex-col items-center justify-center h-full text-center">

@@ -1,8 +1,12 @@
 "use client";
 
 import { useRef, useState } from 'react';
+import Papa from 'papaparse';
+import { parse } from 'date-fns';
+import { useLiveQuery } from 'dexie-react-hooks';
+
 import type { Transaction } from '@/lib/types';
-import { useTransactions } from '@/context/transactions-context';
+import { db } from '@/lib/db';
 import { DataTable } from '@/components/transactions/data-table';
 import { columns } from '@/components/transactions/columns';
 import { Button } from '@/components/ui/button';
@@ -20,7 +24,8 @@ import {
 import { TransactionForm } from '@/components/transactions/transaction-form';
 
 export default function TransactionsPage() {
-  const { transactions, addTransactions, deleteTransactions, loading, setLoading } = useTransactions();
+  const transactions = useLiveQuery(() => db.transactions.orderBy('date').reverse().toArray());
+  const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
@@ -30,110 +35,100 @@ export default function TransactionsPage() {
     if (!file) return;
 
     setLoading(true);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target?.result as string;
-        const lines = text.trim().split('\n');
-        const header = lines.shift();
+    
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        try {
+          const parsedData = results.data as any[];
 
-        const newTransactions: Transaction[] = lines
-          .map((line, index) => {
-            if (!line.trim()) return null;
+          const existingTransactions = await db.transactions.toArray();
+          const existingKeys = new Set(existingTransactions.map(t => `${t.date}-${t.amount}-${t.comment}`));
+          
+          const transactionsToAdd: Transaction[] = [];
 
-            const values = line.split(',');
-            if (values.length < 6) {
-              console.warn(`Skipping invalid line (not enough columns) ${index + 2}: ${line}`);
-              return null;
+          parsedData.forEach((row, index) => {
+            const amount = parseFloat(row.Amount);
+            const dateStr = row.Date;
+            const type = row.Type?.trim().toLowerCase();
+
+            if (!dateStr || isNaN(amount) || !type || (type !== 'income' && type !== 'expense')) {
+                console.warn(`Skipping invalid row ${index + 2}:`, row);
+                return;
             }
 
-            const [dateStr, type, account, category, subcategory, amountStr, ...commentParts] = values;
-            const comment = commentParts.join(',').trim().replace(/"/g, '');
+            const dateValue = parse(dateStr, 'dd-MM-yyyy HH:mm', new Date());
 
-            const dateValue = (() => {
-                const trimmedDateStr = dateStr.trim();
-                if (!trimmedDateStr) return null;
-                const parts = trimmedDateStr.split(' ');
-                if (parts.length !== 2) return null;
-                const dateParts = parts[0].split('-');
-                const timeParts = parts[1].split(':');
-                if (dateParts.length !== 3 || timeParts.length !== 2) return null;
-                const day = parseInt(dateParts[0], 10);
-                const month = parseInt(dateParts[1], 10) - 1;
-                const year = parseInt(dateParts[2], 10);
-                const hours = parseInt(timeParts[0], 10);
-                const minutes = parseInt(timeParts[1], 10);
-                if ([day, month, year, hours, minutes].some(isNaN)) return null;
-                const date = new Date(year, month, day, hours, minutes);
-                if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
-                    return null;
-                }
-                return date;
-            })();
-
-            if (!dateValue || isNaN(dateValue.getTime())) {
-                console.warn(`Skipping invalid date on line ${index + 2}: ${line}`);
-                return null;
-            }
-            
-            const amount = parseFloat(amountStr);
-            const transactionType = type.trim().toLowerCase();
-
-            if (isNaN(amount) || (transactionType !== 'income' && transactionType !== 'expense')) {
-              console.warn(`Skipping invalid data on line ${index + 2}: ${line}`);
-              return null;
+            if (isNaN(dateValue.getTime())) {
+                console.warn(`Skipping invalid date on line ${index + 2}: ${dateStr}`);
+                return;
             }
 
-            return {
-              id: `csv_${new Date().getTime()}_${index}`,
+            const newTransaction: Omit<Transaction, 'id'> = {
               date: dateValue.toISOString(),
-              type: transactionType as 'income' | 'expense',
-              account: account.trim(),
-              category: category.trim(),
-              subcategory: subcategory.trim(),
+              type: type,
+              account: row.Account?.trim() || 'Unknown',
+              category: row.Category?.trim() || 'Uncategorized',
+              subcategory: row.Subcategory?.trim() || 'Unknown',
               amount,
-              comment: comment,
+              comment: row.Comment?.trim() || '',
             };
-          })
-          .filter((t): t is Transaction => t !== null);
 
-        addTransactions(newTransactions);
-        toast({
-          title: "Upload Successful",
-          description: `${newTransactions.length} transactions have been added.`,
-        });
-      } catch (error) {
-        console.error("Error parsing CSV:", error);
+            const key = `${newTransaction.date}-${newTransaction.amount}-${newTransaction.comment}`;
+            if (!existingKeys.has(key)) {
+                transactionsToAdd.push(newTransaction as Transaction);
+                existingKeys.add(key);
+            }
+          });
+
+          if (transactionsToAdd.length > 0) {
+            await db.transactions.bulkAdd(transactionsToAdd);
+            toast({
+              title: "Upload Successful",
+              description: `${transactionsToAdd.length} new transactions have been added.`,
+            });
+          } else {
+             toast({
+              title: "Upload Complete",
+              description: "No new transactions were found to add.",
+            });
+          }
+
+        } catch (error) {
+          console.error("Error processing CSV:", error);
+          toast({
+            variant: "destructive",
+            title: "Upload Failed",
+            description: "There was an error processing the CSV file.",
+          });
+        } finally {
+          setLoading(false);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+        }
+      },
+      error: (error) => {
         toast({
           variant: "destructive",
           title: "Upload Failed",
-          description: "There was an error parsing the CSV file. Please check the format.",
+          description: `CSV parsing error: ${error.message}`,
         });
-      } finally {
         setLoading(false);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
       }
-    };
-    reader.onerror = () => {
-        toast({
-            variant: "destructive",
-            title: "Upload Failed",
-            description: "Could not read the selected file.",
-        });
-        setLoading(false);
-    }
-    reader.readAsText(file);
+    });
   };
 
-  const handleDeleteTransactions = (rowsToDelete: Transaction[]) => {
-    const idsToDelete = rowsToDelete.map((row) => row.id);
-    deleteTransactions(idsToDelete);
-    toast({
-      title: 'Transactions Deleted',
-      description: `${idsToDelete.length} transaction(s) have been deleted.`,
-    });
+  const handleDeleteTransactions = async (rowsToDelete: Transaction[]) => {
+    const idsToDelete = rowsToDelete.map((row) => row.id).filter((id): id is number => id !== undefined);
+    if(idsToDelete.length > 0) {
+      await db.transactions.bulkDelete(idsToDelete);
+      toast({
+        title: 'Transactions Deleted',
+        description: `${idsToDelete.length} transaction(s) have been deleted.`,
+      });
+    }
   };
 
   return (
@@ -165,7 +160,7 @@ export default function TransactionsPage() {
           </DialogContent>
         </Dialog>
       </div>
-      {loading && transactions.length === 0 ? (
+      {transactions === undefined && (
         <div className="space-y-4">
           <div className="flex justify-between">
             <Skeleton className="h-10 w-1/4" />
@@ -173,7 +168,8 @@ export default function TransactionsPage() {
           </div>
           <Skeleton className="h-96 w-full rounded-md border" />
         </div>
-      ) : (
+      )}
+      {transactions && (
         <DataTable columns={columns} data={transactions} onDelete={handleDeleteTransactions} />
       )}
     </div>
