@@ -1,6 +1,7 @@
 "use client"
 
 import { ColumnDef, FilterFn, Row } from "@tanstack/react-table"
+import { format } from "date-fns"
 import type { Transaction } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -91,7 +92,7 @@ export const columns: ColumnDef<Transaction>[] = [
     },
     cell: ({ row }) => {
         const date = new Date(row.getValue("date"));
-        return <div className="text-left">{date.toLocaleDateString()}</div>
+        return <div className="text-left">{format(date, "dd-MM-yyyy")}</div>
     },
     filterFn: dateFilterFn,
   },
