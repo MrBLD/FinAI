@@ -13,9 +13,9 @@ type KpiCardProps = {
 export default function KpiCard({ title, value, icon: Icon, color, isPercentage = false, description }: KpiCardProps) {
   const formattedValue = isPercentage
     ? `${value.toFixed(1)}%`
-    : new Intl.NumberFormat('en-US', {
+    : new Intl.NumberFormat('en-IN', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'INR',
       }).format(value);
 
   return (

@@ -117,7 +117,7 @@ export function OverviewCharts({ transactions, loading }: { transactions: Transa
           <BarChart data={monthlyData} accessibilityLayer>
             <CartesianGrid vertical={false} />
             <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} />
-            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartTooltip formatter={(value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value as number)} content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
             <Bar dataKey="income" fill="var(--color-income)" radius={4} />
             <Bar dataKey="expense" fill="var(--color-expense)" radius={4} />
@@ -132,7 +132,7 @@ export function OverviewCharts({ transactions, loading }: { transactions: Transa
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                 </Pie>
-                <ChartTooltip formatter={(value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value as number)} content={<ChartTooltipContent />} />
+                <ChartTooltip formatter={(value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value as number)} content={<ChartTooltipContent />} />
                 <ChartLegend content={<ChartLegendContent />} />
             </PieChart>
         </ChartContainer>
@@ -145,7 +145,7 @@ export function OverviewCharts({ transactions, loading }: { transactions: Transa
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                 </Pie>
-                <ChartTooltip formatter={(value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value as number)} content={<ChartTooltipContent />} />
+                <ChartTooltip formatter={(value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value as number)} content={<ChartTooltipContent />} />
                 <ChartLegend content={<ChartLegendContent />} />
             </PieChart>
           </ChartContainer>
@@ -155,7 +155,7 @@ export function OverviewCharts({ transactions, loading }: { transactions: Transa
             <BarChart data={dayOfWeekData} accessibilityLayer>
                 <CartesianGrid vertical={false} />
                 <XAxis dataKey="day" tickLine={false} tickMargin={10} axisLine={false} />
-                <ChartTooltip formatter={(value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value as number)} content={<ChartTooltipContent />} />
+                <ChartTooltip formatter={(value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value as number)} content={<ChartTooltipContent />} />
                 <Bar dataKey="amount" fill="var(--color-amount)" radius={4} />
             </BarChart>
         </ChartContainer>
@@ -165,8 +165,8 @@ export function OverviewCharts({ transactions, loading }: { transactions: Transa
             <BarChart data={weekdayWeekendData} accessibilityLayer>
               <CartesianGrid vertical={false} />
               <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
-              <YAxis tickFormatter={(value) => `$${(value as number / 1000)}k`} />
-              <ChartTooltip formatter={(value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value as number)} content={<ChartTooltipContent />} />
+              <YAxis tickFormatter={(value) => `₹${(value as number / 1000)}k`} />
+              <ChartTooltip formatter={(value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value as number)} content={<ChartTooltipContent />} />
               <Bar dataKey="value" radius={4}>
                 {weekdayWeekendData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

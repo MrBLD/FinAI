@@ -7,7 +7,7 @@ import KpiCard from '@/components/overview/kpi-card';
 import { OverviewCharts } from '@/components/overview/charts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { DollarSign, ArrowDown, ArrowUp, PiggyBank, TrendingUp, TrendingDown, Wallet, Goal } from 'lucide-react';
+import { DollarSign, ArrowDown, ArrowUp, PiggyBank, TrendingUp, TrendingDown, Wallet, Goal, Activity, Banknote } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { parseISO, format } from 'date-fns';
@@ -50,19 +50,29 @@ export default function OverviewPage() {
   
   const avgMonthlyIncome = monthlyIncomes.length > 0 ? monthlyIncomes.reduce((a, b) => a + b, 0) / monthlyIncomes.length : 0;
   const avgMonthlyExpense = monthlyExpenses.length > 0 ? monthlyExpenses.reduce((a, b) => a + b, 0) / monthlyExpenses.length : 0;
+  const expenseToIncomeRatio = avgMonthlyIncome > 0 ? (avgMonthlyExpense / avgMonthlyIncome) * 100 : 0;
 
   const budgetVariance = monthlyBudget - avgMonthlyExpense;
+  const budgetUtilization = monthlyBudget > 0 ? (avgMonthlyExpense / monthlyBudget) * 100 : 0;
+
+  const monthlyExpenseStdDev = Math.sqrt(monthlyExpenses.map(x => Math.pow(x - avgMonthlyExpense, 2)).reduce((a, b) => a + b, 0) / monthlyExpenses.length);
+
   const largestSingleExpense = Math.max(0, ...expenseData.map((t) => t.amount));
+  const largestSingleIncome = Math.max(0, ...incomeData.map((t) => t.amount));
 
   const kpis = [
     { title: 'Total Income', value: totalIncome, icon: ArrowUp, color: 'text-green-500' },
     { title: 'Total Expense', value: totalExpense, icon: ArrowDown, color: 'text-red-500' },
     { title: 'Net Cashflow', value: netCashflow, icon: DollarSign, color: 'text-blue-500' },
     { title: 'Savings Rate', value: savingsRate, isPercentage: true, icon: PiggyBank, color: 'text-indigo-500' },
-    { title: 'Avg Monthly Income', value: avgMonthlyIncome, icon: TrendingUp, color: 'text-green-500' },
     { title: 'Avg Monthly Expense', value: avgMonthlyExpense, icon: TrendingDown, color: 'text-red-500' },
-    { title: 'Budget Variance', value: budgetVariance, icon: Goal, color: 'text-yellow-500', description: `vs $${new Intl.NumberFormat('en-US').format(monthlyBudget)}/mo budget` },
-    { title: 'Largest Expense', value: largestSingleExpense, icon: Wallet, color: 'text-orange-500' },
+    { title: 'Expense / Income', value: expenseToIncomeRatio, isPercentage: true, icon: TrendingUp, color: 'text-yellow-500' },
+    { title: 'Budget Utilization', value: budgetUtilization, isPercentage: true, icon: Goal, color: 'text-orange-500' },
+    { title: 'Budget Variance', value: budgetVariance, icon: Wallet, color: 'text-purple-500', description: `vs ₹${new Intl.NumberFormat('en-IN').format(monthlyBudget)}/mo budget` },
+    { title: 'Avg Monthly Income', value: avgMonthlyIncome, icon: TrendingUp, color: 'text-green-500' },
+    { title: 'Monthly Expense Volatility', value: monthlyExpenseStdDev, icon: Activity, color: 'text-pink-500' },
+    { title: 'Largest Single Expense', value: largestSingleExpense, icon: Banknote, color: 'text-red-600' },
+    { title: 'Largest Single Income', value: largestSingleIncome, icon: Banknote, color: 'text-green-600' },
   ];
 
   return (
