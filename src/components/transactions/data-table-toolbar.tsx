@@ -156,14 +156,14 @@ export function DataTableToolbar<TData>({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-2 md:flex-row md:flex-wrap">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         <Input
           placeholder="Filter by comment..."
           value={(table.getColumn('comment')?.getFilterValue() as string) ?? ''}
           onChange={(event) =>
             table.getColumn('comment')?.setFilterValue(event.target.value)
           }
-          className="h-8 w-full md:w-[150px] lg:w-[250px]"
+          className="h-8 w-full sm:w-[150px] lg:w-[250px]"
         />
         <Popover onOpenChange={handleCalendarOpen}>
           <PopoverTrigger asChild>
@@ -171,7 +171,7 @@ export function DataTableToolbar<TData>({
               id="date"
               variant={'outline'}
               className={cn(
-                'h-8 w-full md:w-[240px] justify-start text-left font-normal',
+                'h-8 w-full sm:w-[240px] justify-start text-left font-normal',
                 !date && 'text-muted-foreground'
               )}
             >
@@ -211,7 +211,7 @@ export function DataTableToolbar<TData>({
             table.getColumn('type')?.setFilterValue(value === 'all' ? undefined : value)
           }
         >
-          <SelectTrigger className="h-8 w-full md:w-[150px]">
+          <SelectTrigger className="h-8 w-full sm:w-[150px]">
             <SelectValue placeholder="Type" />
           </SelectTrigger>
           <SelectContent>
@@ -233,7 +233,7 @@ export function DataTableToolbar<TData>({
               ?.setFilterValue(value === 'all' ? undefined : value)
           }
         >
-          <SelectTrigger className="h-8 w-full md:w-[150px]">
+          <SelectTrigger className="h-8 w-full sm:w-[150px]">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
@@ -257,7 +257,7 @@ export function DataTableToolbar<TData>({
           }
           disabled={subcategories.length === 0}
         >
-          <SelectTrigger className="h-8 w-full md:w-[150px]">
+          <SelectTrigger className="h-8 w-full sm:w-[150px]">
             <SelectValue placeholder="Subcategory" />
           </SelectTrigger>
           <SelectContent>
@@ -288,7 +288,7 @@ export function DataTableToolbar<TData>({
               .getColumn('amount')
               ?.setFilterValue([newMin, currentFilter?.[1]]);
           }}
-          className="h-8 w-full md:w-[100px]"
+          className="h-8 w-full sm:w-[100px]"
         />
         <Input
           placeholder="Max amount"
@@ -309,7 +309,7 @@ export function DataTableToolbar<TData>({
               .getColumn('amount')
               ?.setFilterValue([currentFilter?.[0], newMax]);
           }}
-          className="h-8 w-full md:w-[100px]"
+          className="h-8 w-full sm:w-[100px]"
         />
         {isFiltered && (
           <Button
